@@ -6,6 +6,7 @@ $app = require_once __DIR__ . '/../../bootstrap/app.php';
 $app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
 
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
@@ -44,18 +45,39 @@ $application
     ->setDescription('Uploads users from a CSV file to the database')
     ->addOption('file', null, InputOption::VALUE_OPTIONAL, 'Name of the CSV file to be parsed', './users.csv')
     ->addOption('dry_run', null, InputOption::VALUE_NONE, 'Execute without inserting into the DB (Optional)')
-
+    ->addOption('u', 'u', InputOption::VALUE_REQUIRED, 'MySQL username')
+    ->addOption('p', 'p', InputOption::VALUE_REQUIRED, 'MySQL password')
     ->setCode(function (InputInterface $input, OutputInterface $output) {
 
         $file = $input->getOption('file');
         $dryRun = $input->getOption('dry_run');
+        $username = $input->getOption('u');
+        $password = $input->getOption('p');
+
+        $connection = 'mysql_' . $username;
+
+        if($password=="null")
+        {
+            $password=null;
+        }
+        // Set the database connection configuration dynamically
+        config(['database.connections.' . $connection => [
+            'driver' => 'mysql',
+            'host' => env('DB_HOST', '127.0.0.1'),
+            'port' => env('DB_PORT', '3306'),
+            'database' => env('DB_DATABASE', 'catalyst'),
+            'username' => "$username",
+            'password' =>"$password",
+            // ... (other relevant database configuration)
+        ]]);
+
         try {
             $csvFile = @fopen($file, 'r');
             if (!$csvFile) {
                 fwrite(STDOUT, "Error opening file $file");
             }
             // Begin a transaction
-            DB::beginTransaction();
+            DB::connection($connection)->beginTransaction();
 
             while (($row = fgetcsv($csvFile)) !== false) {
                 $name = ucfirst(strtolower(trim($row[0])));
@@ -67,8 +89,10 @@ $application
                     fwrite(STDOUT, "Invalid email format for: $name $surname - $email\n");
                     continue;
                 }
+
                 if (!$dryRun) {
-                    $user = User::firstOrNew(['email' => $email]);
+
+                    $user = User::on($connection)->firstOrNew(['email' => $email]);
 
                     if (!$user->exists) {
                         $user->fill([
@@ -82,14 +106,15 @@ $application
             }
 
             // Commit the transaction if all inserts are successful
-            DB::commit();
+            DB::connection($connection)->commit();
             fclose($csvFile);
         } catch (\Throwable $e) {
             // Rollback the transaction on any error
-            DB::rollBack();
+            DB::connection($connection)->rollBack();
 
             // Log the error message or handle the exception
             Log::error('Error during CSV data insertion: ' . $e->getMessage());
+            fwrite(STDOUT, $e->getMessage());
 
             if ($csvFile && $file)
             {

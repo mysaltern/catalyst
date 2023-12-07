@@ -18,8 +18,7 @@ $application = new Application('User Upload Script', '1.0.0');
 $application
     ->register('user:upload')
     ->setDescription('Uploads users from a CSV file to the database')
-    ->addOption('file', null, InputOption::VALUE_REQUIRED, 'Name of the CSV file to be parsed')
-    ->setCode(function (InputInterface $input, OutputInterface $output) {
+    ->addOption('file', null, InputOption::VALUE_OPTIONAL, 'Name of the CSV file to be parsed', './users.csv')->setCode(function (InputInterface $input, OutputInterface $output) {
         $file = $input->getOption('file');
 
         try {
@@ -63,7 +62,8 @@ $application
             // Log the error message or handle the exception
             Log::error('Error during CSV data insertion: ' . $e->getMessage());
 
-            if ($csvFile) {
+            if ($csvFile && $file)
+            {
                 fclose($csvFile);
             }
         }

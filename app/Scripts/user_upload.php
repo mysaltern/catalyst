@@ -42,9 +42,13 @@ $application
 $application
     ->register('user:upload')
     ->setDescription('Uploads users from a CSV file to the database')
-    ->addOption('file', null, InputOption::VALUE_OPTIONAL, 'Name of the CSV file to be parsed', './users.csv')->setCode(function (InputInterface $input, OutputInterface $output) {
-        $file = $input->getOption('file');
+    ->addOption('file', null, InputOption::VALUE_OPTIONAL, 'Name of the CSV file to be parsed', './users.csv')
+    ->addOption('dry_run', null, InputOption::VALUE_NONE, 'Execute without inserting into the DB (Optional)')
 
+    ->setCode(function (InputInterface $input, OutputInterface $output) {
+
+        $file = $input->getOption('file');
+        $dryRun = $input->getOption('dry_run');
         try {
             $csvFile = @fopen($file, 'r');
             if (!$csvFile) {
@@ -63,16 +67,17 @@ $application
                     fwrite(STDOUT, "Invalid email format for: $name $surname - $email\n");
                     continue;
                 }
+                if (!$dryRun) {
+                    $user = User::firstOrNew(['email' => $email]);
 
-                $user = User::firstOrNew(['email' => $email]);
-
-                if (!$user->exists) {
-                    $user->fill([
-                        'name' => $name,
-                        'surname' => $surname,
-                    ])->save();
-                } else {
-                    fwrite(STDOUT, "User with email $email already exists. Skipped insertion.\n");
+                    if (!$user->exists) {
+                        $user->fill([
+                            'name' => $name,
+                            'surname' => $surname,
+                        ])->save();
+                    } else {
+                        fwrite(STDOUT, "User with email $email already exists. Skipped insertion.\n");
+                    }
                 }
             }
 

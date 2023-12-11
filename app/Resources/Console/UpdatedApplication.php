@@ -49,7 +49,8 @@ class UpdatedApplication extends Application
      */
     public function doRun(InputInterface $input, OutputInterface $output)
     {
-        if (true === $input->hasParameterOption(['--version', '-V'], true)) {
+
+        if (true === $input->hasParameterOption(['--version', '-F'], true)) {
             $output->writeln($this->getLongVersion());
             return 0;
         }
@@ -141,36 +142,16 @@ class UpdatedApplication extends Application
      */
     protected function getDefaultInputDefinition(): InputDefinition
     {
-
         return new InputDefinition([
             new InputArgument('command', InputArgument::REQUIRED, 'The command to execute'),
-            // Add your desired InputOptions here
             new InputOption('--help', '-H', InputOption::VALUE_NONE, 'Display help for the given command. When no command is given display help for the <info>'.$this->defaultCommand.'</info> command'),
-
             new InputOption('--quiet', '-q', InputOption::VALUE_NONE, 'Do not output any message'),
             new InputOption('--verbose', '-v|vv|vvv', InputOption::VALUE_NONE, 'Increase the verbosity of messages: 1 for normal output, 2 for more verbose output and 3 for debug'),
             new InputOption('--version', '-V', InputOption::VALUE_NONE, 'Display this application version'),
             new InputOption('--ansi', '', InputOption::VALUE_NEGATABLE, 'Force (or disable --no-ansi) ANSI output', null),
             new InputOption('--no-interaction', '-n', InputOption::VALUE_NONE, 'Do not ask any interactive question'),
-            // Add your additional InputArguments or InputOptions here if needed
         ]);
 
-
-        $definition  = [];
-
-        $defaultDefinition = parent::getDefaultInputDefinition();
-
-        foreach ($defaultDefinition->getOptions() as $option) {
-            if ($option->getName() !== 'version') {
-                $definition[] = $option;
-            }
-        }
-
-        foreach ($defaultDefinition->getArguments() as $argument) {
-            $definition[] = $argument;
-        }
-
-        return new InputDefinition($definition);
     }
 
 }

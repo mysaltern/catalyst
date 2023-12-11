@@ -7,15 +7,14 @@ $app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
 
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
-use Symfony\Component\Console\Application;
+use App\Resources\Console\UpdatedApplication;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-$application = new Application('User Upload Script', '1.0.0');
+$application = new UpdatedApplication('User Upload Script', '1.0.0');
 $application
     ->register('user:create_table')
     ->setDescription('Creates the MySQL users table')
@@ -47,13 +46,15 @@ $application
     ->addOption('dry_run', null, InputOption::VALUE_NONE, 'Execute without inserting into the DB (Optional)')
     ->addOption('u', 'u', InputOption::VALUE_REQUIRED, 'MySQL username')
     ->addOption('p', 'p', InputOption::VALUE_REQUIRED, 'MySQL password')
+    ->addOption('h', '-h', InputOption::VALUE_REQUIRED, 'Host')
+
     ->setCode(function (InputInterface $input, OutputInterface $output) {
 
         $file = $input->getOption('file');
         $dryRun = $input->getOption('dry_run');
         $username = $input->getOption('u');
         $password = $input->getOption('p');
-
+        $host = $input->getOption('h');
         $connection = 'mysql_' . $username;
 
         if($password=="null")
@@ -63,7 +64,7 @@ $application
         // Set the database connection configuration dynamically
         config(['database.connections.' . $connection => [
             'driver' => 'mysql',
-            'host' => env('DB_HOST', '127.0.0.1'),
+            'host' => $host,
             'port' => env('DB_PORT', '3306'),
             'database' => env('DB_DATABASE', 'catalyst'),
             'username' => "$username",

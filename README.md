@@ -1,6 +1,4 @@
-Absolutely! Here's an example README file for your Laravel project:
 
----
 
 # User Upload Script in Laravel
 

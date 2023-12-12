@@ -4,6 +4,7 @@
 namespace App\Helpers;
 
 use Illuminate\Foundation\Auth\User;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -63,7 +64,7 @@ class ConsoleHelpers
 
     public static function showHelpOptions(OutputInterface $output, array $options): void {
         $output->writeln('<comment>Usage:</comment>');
-        $output->writeln('php script.php user:upload [options]');
+        $output->writeln('php user_upload.php user:upload [options]');
         $output->writeln('');
         $output->writeln('<comment>Options:</comment>');
         foreach ($options as $option) {
@@ -136,6 +137,28 @@ class ConsoleHelpers
         if ($csvFile && $file)
         {
             fclose($csvFile);
+        }
+    }
+    public static function handleUserCreate(InputInterface $input, OutputInterface $output,array $options): void
+    {
+        $createTable = $input->getOption('create_table');
+        $help = $input->getOption('help');
+        if ($help) {
+            self::showHelpOptions($output, $options);
+            exit();
+        }
+        if ($createTable) {
+            try {
+                Artisan::call('migrate', [
+                    '--path' => 'database/migrations/2014_10_12_000000_create_users_table.php',
+                ]);
+
+                $output->writeln('<info>Users table migrated successfully!</info>');
+            } catch (\Throwable $e) {
+                $output->writeln('<error>Error migrating users table: ' . $e->getMessage() . '</error>');
+            }
+        } else {
+            $output->writeln('<comment>No action specified. Use --create_table to migrate the users table.</comment>');
         }
     }
 

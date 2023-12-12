@@ -5,21 +5,14 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 $app = require_once __DIR__ . '/../../bootstrap/app.php';
 $app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
 
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
-use App\Models\User;
 use App\Resources\Console\UpdatedApplication;
-use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use App\Helpers\ConsoleHelpers;
 
-
 $options = [
     'user_create' => [
-
         'help' => [
             'name' => 'help',
             'shortcut' => null,
@@ -43,7 +36,6 @@ $options = [
             'description' => 'Execute without inserting into the DB',
             'default' => null,
         ],
-
         'u' => [
             'name' => 'u',
             'shortcut' => 'u',
@@ -75,7 +67,6 @@ $options = [
     ],
 ];
 
-
 $application = new UpdatedApplication('User Upload Script', '1.0.0');
 $application
     ->register('user:create_table')
@@ -85,9 +76,6 @@ $application
     ->setCode(function (InputInterface $input, OutputInterface $output) use ($options) {
         ConsoleHelpers::handleUserCreate($input, $output, $options['user_create']);
     });
-
-
-
 $csvFile=null;
 $application
     ->register('user:upload')
@@ -101,8 +89,4 @@ $application
     ->setCode(function (InputInterface $input, OutputInterface $output) use ($options) {
         ConsoleHelpers::handleUserUpload($input, $output, $options['user_upload']);
     });
-
-
-
-
 $application->run();

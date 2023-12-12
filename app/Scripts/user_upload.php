@@ -37,7 +37,7 @@ $application
         'name' => 'dry_run',
         'shortcut' => null,
         'mode' => Symfony\Component\Console\Input\InputOption::VALUE_NONE,
-        'description' => 'Execute without inserting into the DB (Optional)',
+        'description' => 'Execute without inserting into the DB',
         'default' => null,
     ],
     'u' => [
@@ -81,9 +81,8 @@ $application
     ->addOption($options['h']['name'], $options['h']['shortcut'], $options['h']['mode'], $options['h']['description'],  $options['h']['default'])
     ->addOption($options['help']['name'], $options['help']['shortcut'], $options['help']['mode'], $options['help']['description'],  $options['help']['default'])
     ->setCode(function (InputInterface $input, OutputInterface $output) use ($options) {
-        handleUserUpload($input, $output, $options);
+        ConsoleHelpers::handleUserUpload($input, $output, $options);
     });
-
 
 function handleUserCreate(InputInterface $input, OutputInterface $output): void
 {
@@ -104,107 +103,5 @@ function handleUserCreate(InputInterface $input, OutputInterface $output): void
     }
 }
 
-function handleUserUpload(InputInterface $input, OutputInterface $output, array $options): void {
-
-    $file = $input->getOption('file');
-        $help = $input->getOption('help');
-        if ($help) {
-            showHelpOptions($output, $options);
-            exit();
-        }
-        $dryRun = $input->getOption('dry_run');
-        $username = $input->getOption('u');
-        $password = $input->getOption('p');
-        $host = $input->getOption('h');
-        $connection = 'mysql_' . $username;
-        if($password=="null")
-        {
-            $password=null;
-        }
-        try {
-            setupDatabaseConnection($connection, $host, $username, $password);
-            processCSVUpload($file, $dryRun, $connection);
-        } catch (\Throwable $e) {
-            handleUploadError($e, $connection, $file);
-        }
-    }
-
-function showHelpOptions(OutputInterface $output, array $options): void {
-    $output->writeln('<comment>Usage:</comment>');
-    $output->writeln('php script.php user:upload [options]');
-    $output->writeln('');
-    $output->writeln('<comment>Options:</comment>');
-    foreach ($options as $option) {
-        ConsoleHelpers::dynamicWriteln($output, $option['name'], $option['description']);
-    }
-}
-
-function setupDatabaseConnection($connection,$host,$username,$password): void
-
-{
-    config(['database.connections.' . $connection => [
-        'driver' => 'mysql',
-        'host' => $host,
-//                'host' => "127.0.0.1",
-        'port' => env('DB_PORT', '3306'),
-        'database' => env('DB_DATABASE', 'catalyst'),
-        'username' => "$username",
-        'password' =>"$password",
-    ]]);
-}
-
-function processCSVUpload($file, $dryRun, $connection)
-{
-    $csvFile = @fopen($file, 'r');
-    if (!$csvFile) {
-        fwrite(STDOUT, "Error opening file $file");
-    }
-    // Begin a transaction
-    DB::connection($connection)->beginTransaction();
-    fgetcsv($csvFile);
-    while (($row = fgetcsv($csvFile)) !== false) {
-        $name = ucfirst(strtolower(trim($row[0])));
-        $surname = !empty($row[1]) ? ucfirst(strtolower(trim($row[1]))) : null;
-        $email = strtolower(trim($row[2]));
-        $validator = validator(['email' => $email], ['email' => 'required|email']);
-
-        if ($validator->fails()) {
-            fwrite(STDOUT, "Invalid email format for: $name $surname - $email\n");
-            continue;
-        }
-
-        if (!$dryRun) {
-
-            $user = User::on($connection)->firstOrNew(['email' => $email]);
-
-            if (!$user->exists) {
-                $user->fill([
-                    'name' => $name,
-                    'surname' => $surname,
-                ])->save();
-            } else {
-                fwrite(STDOUT, "User with email $email already exists. Skipped insertion.\n");
-            }
-        }
-    }
-
-    // Commit the transaction if all inserts are successful
-    DB::connection($connection)->commit();
-    fclose($csvFile);
-}
-
-function  handleUploadError($e, $connection, $file)
-{
-    DB::connection($connection)->rollBack();
-
-    // Log the error message or handle the exception
-    Log::error('Error during CSV data insertion: ' . $e->getMessage());
-    fwrite(STDOUT, $e->getMessage());
-    $csvFile = @fopen($file, 'r');
-    if ($csvFile && $file)
-    {
-        fclose($csvFile);
-    }
-}
 
 $application->run();

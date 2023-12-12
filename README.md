@@ -23,7 +23,6 @@ This Laravel project includes a PHP script named `user_upload.php` designed to p
 Execute the following commands in the terminal or command prompt:
 
 ```bash
-php user_upload.php user:create_table    # Builds the MySQL users table without further action.
 
 php user_upload.php user:upload          # Executes script functions to parse and insert data.
 ```

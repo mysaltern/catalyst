@@ -25,6 +25,9 @@ Execute the following commands in the terminal or command prompt:
 ```bash
 
 php user_upload.php user:upload          # Executes script functions to parse and insert data.
+
+example :
+php user_upload.php user:upload --file=users.csv --u root -p null -h 127.0.0.1
 ```
 
 ## Script Command Line Directives

@@ -11,7 +11,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputInterface;
 class ConsoleHelpers
 {
-    public static function dynamicWriteln(OutputInterface $output, $name, $description,$default,$shortcut, $optional )
+    private function dynamicWriteln(OutputInterface $output, $name, $description,$default,$shortcut, $optional )
     {
         $optionInfo = "<info>$description</info>";
         if ($optional==1) {
@@ -39,16 +39,17 @@ class ConsoleHelpers
 
     public static function handleUserUpload(InputInterface $input, OutputInterface $output, array $options): void {
 
+        $instance = new ConsoleHelpers();
         $file = $input->getOption('file');
         $help = $input->getOption('help');
         $create_table = $input->getOption('create_table');
         if ($help) {
-            self::showHelpOptions($output, $options);
+            $instance->showHelpOptions($output, $options);
             exit();
         }
         if ($create_table) {
 
-            self::handleUserCreate($output);
+            $instance->handleUserCreate($output);
             exit();
         }
         $dryRun = $input->getOption('dry_run');
@@ -61,24 +62,25 @@ class ConsoleHelpers
             $password=null;
         }
         try {
-            self::setupDatabaseConnection($connection, $host, $username, $password);
-            self::processCSVUpload($file, $dryRun, $connection);
+            $instance->setupDatabaseConnection($connection, $host, $username, $password);
+            $instance->processCSVUpload($file, $dryRun, $connection);
         } catch (\Throwable $e) {
-           self::handleUploadError($e, $connection, $file);
+            $instance->handleUploadError($e, $connection, $file);
         }
     }
 
-    public static function showHelpOptions(OutputInterface $output, array $options): void {
+    private function showHelpOptions(OutputInterface $output, array $options): void {
+        $instance = new ConsoleHelpers();
         $output->writeln('<comment>Usage:</comment>');
         $output->writeln('php user_upload.php user:upload [options]');
         $output->writeln('');
         $output->writeln('<comment>Options:</comment>');
         foreach ($options as $option) {
-            ConsoleHelpers::dynamicWriteln($output, $option['name'], $option['description'],$option['default'],$option['shortcut'],$option['mode'] );
+            $instance->dynamicWriteln($output, $option['name'], $option['description'],$option['default'],$option['shortcut'],$option['mode'] );
         }
     }
 
-    public static function setupDatabaseConnection($connection,$host,$username,$password): void
+    private function setupDatabaseConnection($connection,$host,$username,$password): void
 
     {
         config(['database.connections.' . $connection => [
@@ -92,7 +94,7 @@ class ConsoleHelpers
         ]]);
     }
 
-    public static function processCSVUpload($file, $dryRun, $connection)
+    private function processCSVUpload($file, $dryRun, $connection): void
     {
         $csvFile = @fopen($file, 'r');
         if (!$csvFile) {
@@ -132,7 +134,7 @@ class ConsoleHelpers
         fclose($csvFile);
     }
 
-    public static function  handleUploadError($e, $connection, $file)
+    private function  handleUploadError($e, $connection, $file): void
     {
         DB::connection($connection)->rollBack();
 
@@ -145,7 +147,7 @@ class ConsoleHelpers
             fclose($csvFile);
         }
     }
-    public static function handleUserCreate(OutputInterface $output): void
+    private function handleUserCreate(OutputInterface $output): void
     {
             try {
                 Artisan::call('migrate', [

@@ -12,16 +12,25 @@ use Symfony\Component\Console\Output\OutputInterface;
 use App\Helpers\ConsoleHelpers;
 
 $options = [
-    'user_create' => [
-        'help' => [
-            'name' => 'help',
+//    'user_create' => [
+//        'help' => [
+//            'name' => 'help',
+//            'shortcut' => null,
+//            'mode' => Symfony\Component\Console\Input\InputOption::VALUE_NONE,
+//            'description' => 'Help',
+//            'default' => null,
+//        ],
+//    ],
+    'user_upload' => [
+        'create_table' =>
+        [
+            'name' => 'create_table',
             'shortcut' => null,
             'mode' => Symfony\Component\Console\Input\InputOption::VALUE_NONE,
-            'description' => 'Help',
+            'description' => 'Builds the MySQL users table without further action.',
             'default' => null,
         ],
-    ],
-    'user_upload' => [
+
         'file' => [
             'name' => 'file',
             'shortcut' => null,
@@ -68,24 +77,18 @@ $options = [
 ];
 
 $application = new UpdatedApplication('User Upload Script', '1.0.0');
-$application
-    ->register('user:create_table')
-    ->setDescription('Creates the MySQL users table')
-    ->addOption('create_table', null, InputOption::VALUE_NONE, 'Build the MySQL users table')
-    ->addOption($options['user_create']['help']['name'], $options['user_create']['help']['shortcut'], $options['user_upload']['help']['mode'], $options['user_create']['help']['description'],  $options['user_create']['help']['default'])
-    ->setCode(function (InputInterface $input, OutputInterface $output) use ($options) {
-        ConsoleHelpers::handleUserCreate($input, $output, $options['user_create']);
-    });
+
 $csvFile=null;
 $application
     ->register('user:upload')
     ->setDescription('Uploads users from a CSV file to the database')
+    ->addOption($options['user_upload']['create_table']['name'], $options['user_upload']['create_table']['shortcut'], $options['user_upload']['create_table']['mode'], $options['user_upload']['create_table']['description'])
     ->addOption($options['user_upload']['file']['name'], $options['user_upload']['file']['shortcut'], $options['user_upload']['file']['mode'], $options['user_upload']['file']['description'],  $options['user_upload']['file']['default'])
-    ->addOption($options['user_upload']['dry_run']['name'], $options['user_upload']['dry_run']['shortcut'], $options['user_upload']['dry_run']['mode'], $options['user_upload']['dry_run']['description'],  $options['user_upload']['dry_run']['default'])
-    ->addOption($options['user_upload']['u']['name'], $options['user_upload']['u']['shortcut'], $options['user_upload']['u']['mode'], $options['user_upload']['u']['description'],  $options['user_upload']['u']['default'])
-    ->addOption($options['user_upload']['p']['name'], $options['user_upload']['p']['shortcut'], $options['user_upload']['p']['mode'], $options['user_upload']['p']['description'],  $options['user_upload']['p']['default'])
-    ->addOption($options['user_upload']['h']['name'], $options['user_upload']['h']['shortcut'], $options['user_upload']['h']['mode'], $options['user_upload']['h']['description'],  $options['user_upload']['h']['default'])
-    ->addOption($options['user_upload']['help']['name'], $options['user_upload']['help']['shortcut'], $options['user_upload']['help']['mode'], $options['user_upload']['help']['description'],  $options['user_upload']['help']['default'])
+    ->addOption($options['user_upload']['dry_run']['name'], $options['user_upload']['dry_run']['shortcut'], $options['user_upload']['dry_run']['mode'], $options['user_upload']['dry_run']['description'])
+    ->addOption($options['user_upload']['u']['name'], $options['user_upload']['u']['shortcut'], $options['user_upload']['u']['mode'], $options['user_upload']['u']['description'])
+    ->addOption($options['user_upload']['p']['name'], $options['user_upload']['p']['shortcut'], $options['user_upload']['p']['mode'], $options['user_upload']['p']['description'])
+    ->addOption($options['user_upload']['h']['name'], $options['user_upload']['h']['shortcut'], $options['user_upload']['h']['mode'], $options['user_upload']['h']['description'])
+    ->addOption($options['user_upload']['help']['name'], $options['user_upload']['help']['shortcut'], $options['user_upload']['help']['mode'], $options['user_upload']['help']['description'])
     ->setCode(function (InputInterface $input, OutputInterface $output) use ($options) {
         ConsoleHelpers::handleUserUpload($input, $output, $options['user_upload']);
     });

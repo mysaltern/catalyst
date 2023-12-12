@@ -3,7 +3,7 @@
 
 namespace App\Helpers;
 
-use Illuminate\Foundation\Auth\User;
+use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -41,8 +41,14 @@ class ConsoleHelpers
 
         $file = $input->getOption('file');
         $help = $input->getOption('help');
+        $create_table = $input->getOption('create_table');
         if ($help) {
             self::showHelpOptions($output, $options);
+            exit();
+        }
+        if ($create_table) {
+
+            self::handleUserCreate($output);
             exit();
         }
         $dryRun = $input->getOption('dry_run');
@@ -139,27 +145,16 @@ class ConsoleHelpers
             fclose($csvFile);
         }
     }
-    public static function handleUserCreate(InputInterface $input, OutputInterface $output,array $options): void
+    public static function handleUserCreate(OutputInterface $output): void
     {
-        $createTable = $input->getOption('create_table');
-        $help = $input->getOption('help');
-        if ($help) {
-            self::showHelpOptions($output, $options);
-            exit();
-        }
-        if ($createTable) {
             try {
                 Artisan::call('migrate', [
                     '--path' => 'database/migrations/2014_10_12_000000_create_users_table.php',
                 ]);
-
                 $output->writeln('<info>Users table migrated successfully!</info>');
             } catch (\Throwable $e) {
                 $output->writeln('<error>Error migrating users table: ' . $e->getMessage() . '</error>');
             }
-        } else {
-            $output->writeln('<comment>No action specified. Use --create_table to migrate the users table.</comment>');
-        }
     }
 
 }

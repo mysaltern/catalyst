@@ -2,9 +2,7 @@
 // File: app\Resources\Console\TestApplication.php
 namespace App\Resources\Console;
 
-use App\Console\Commands\Mohammad;
 use Symfony\Component\Console\Application;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Command\LazyCommand;
 use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\Console\Event\ConsoleErrorEvent;
@@ -148,6 +146,6 @@ class UpdatedApplication extends Application
         ]);
 
     }
-   
+
 
 }
